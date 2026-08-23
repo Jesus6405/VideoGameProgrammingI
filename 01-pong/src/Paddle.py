@@ -20,6 +20,7 @@ class Paddle:
         self.width: float = width
         self.height: float = height
         self.vy: float = 0.0
+        self.ai_target_y: float = settings.VIRTUAL_HEIGHT / 2 - self.height / 2
 
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(round(self.x), round(self.y), self.width, self.height)

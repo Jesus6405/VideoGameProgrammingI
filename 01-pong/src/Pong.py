@@ -39,6 +39,8 @@ class Pong(Game):
             settings.VIRTUAL_HEIGHT / 2 - settings.BALL_SIZE / 2,
             settings.BALL_SIZE,
         )
+
+        self.gamemode = 0
         self.player1_score = 0
         self.player2_score = 0
         self.serving_player = 1
