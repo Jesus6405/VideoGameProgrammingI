@@ -41,9 +41,16 @@ class PlayingState(BaseState):
         self.strategy.update_world(self.world, dt)
         self.world.update(dt)
 
-        if self.world.collides(self.bird.get_rect()):
+        if self.gamemode == 1: 
+            if self.world.check_powerup_collision(self.bird.get_rect()):
+                self.bird.activate_invisivility(5.0)
+
+        if self.world.collides(self.bird.get_rect(), self.bird.is_invisible):
             settings.SOUNDS["explosion"].play()
             settings.SOUNDS["hurt"].play()
+            settings.SOUNDS["ghost_music"].stop()
+            settings.TEXTURES["bird"].set_alpha(255)
+            pygame.mixer.music.unpause()
             self.state_machine.change("count_down", gamemode = self.gamemode)
             return
 

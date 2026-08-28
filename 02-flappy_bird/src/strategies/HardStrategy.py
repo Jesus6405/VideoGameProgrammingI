@@ -12,6 +12,7 @@ class HardStrategy(DifficultyStrategy):
     def update_world(self, world, dt: float) -> None:
         if world.generate_logs: 
             world.logs_spawn_timer += dt
+            world.power_up_spawn_timer += dt
 
             if world.logs_spawn_timer >= self.next_spawn_time:
                 world.logs_spawn_timer = 0.0
@@ -28,6 +29,15 @@ class HardStrategy(DifficultyStrategy):
                     world.logs.append(world.log_pair_factory.create(settings.VIRTUAL_WIDTH, y))
                 
                 self.next_spawn_time = random.uniform(1.2, 2.2)
+
+            if world.power_up_spawn_timer >= world.next_powerup_spawn and world.logs_spawn_timer >= (0.6*self.next_spawn_time):
+                world.power_up_spawn_timer = 0.0
+                world.next_powerup_spawn = random.uniform(10.0, 18.0)
+            
+                y = random.randint(30, settings.VIRTUAL_HEIGHT - settings.GROUND_HEIGHT - 40)
+                world.power_ups.append(world.ghost_power_up_factory.create(settings.VIRTUAL_WIDTH, y))
+
+            
 
     def handle_bird_input(self, bird, input_id: str, input_data) -> None:
         if input_id == "jump" and input_data.pressed:

@@ -45,12 +45,12 @@ class LogPair:
             self.y += self.close_speed * dt
             self.gap -= 2 * self.close_speed * dt
 
-            if self.get_top_rect().colliderect(self.get_bottom_rect()):
-                self.close_speed *= -1
+            if self.gap <= 0:
+                self.close_speed = -30.0
                 settings.SOUNDS["log_crash"].play()
 
             if self.gap > settings.LOGS_GAP:
-                self.close_speed *= -1
+                self.close_speed = 30.0
 
     def is_out_of_game(self) -> bool:
         return self.x < -settings.LOG_WIDTH

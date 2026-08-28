@@ -66,6 +66,7 @@ TEXTURES = {
     "background": pygame.image.load(BASE_DIR / "assets" / "graphics" / "background.png"),
     "ground": pygame.image.load(BASE_DIR / "assets" / "graphics" / "ground.png"),
     "log": pygame.image.load(BASE_DIR / "assets" / "graphics" / "log.png"),
+    "ghost": pygame.image.load(BASE_DIR / "assets" / "graphics" / "ghost.png"),
 }
 # The top log of every pair is the same image, flipped upside down.
 TEXTURES["log_inverted"] = pygame.transform.flip(TEXTURES["log"], False, True)
@@ -76,6 +77,7 @@ SOUNDS = {
     "hurt": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "hurt.wav"),
     "score": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "score.wav"),
     "log_crash": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "log_crash.wav"),
+    "ghost_music": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "gaming_rock.mp3"),
 }
 
 pygame.mixer.music.load(BASE_DIR / "assets" / "sounds" / "marios_way.ogg")
