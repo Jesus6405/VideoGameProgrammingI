@@ -14,6 +14,7 @@ class PauseState(BaseState):
         self.world = params["world"]
         self.bird = params["bird"]
         self.score = params["score"]
+        self.gamemode = params["gamemode"]
 
     def render(self, surface: pygame.Surface) -> None:
         self.world.render(surface)
@@ -39,9 +40,7 @@ class PauseState(BaseState):
         )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
-        if input_id == "jump" and input_data.pressed:
-            self.bird.jump()
-        elif input_id == "pause" and input_data.pressed:
+        if input_id == "pause" and input_data.pressed:
             self.state_machine.change(
-                "playing", world=self.world, bird=self.bird, score=self.score
+                "playing", world=self.world, bird=self.bird, score=self.score, gamemode = self.gamemode
             )

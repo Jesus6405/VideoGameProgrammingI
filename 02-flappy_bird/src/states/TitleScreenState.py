@@ -21,6 +21,7 @@ from src.World import World
 class TitleScreenState(BaseState):
     def enter(self) -> None:
         self.world = World()
+        self.gamemode = 0
 
     def update(self, dt: float) -> None:
         self.world.update(dt)
@@ -39,7 +40,7 @@ class TitleScreenState(BaseState):
         )
         render_text(
             surface,
-            "Press Enter to start",
+            "Press Enter to select difficulty",
             settings.FONTS["medium"],
             settings.VIRTUAL_WIDTH / 2,
             2 * settings.VIRTUAL_HEIGHT / 3,
@@ -47,7 +48,34 @@ class TitleScreenState(BaseState):
             center=True,
             shadowed=True,
         )
+        render_text(
+            surface,
+            "Normal Mode",
+            settings.FONTS["medium"],
+            settings.VIRTUAL_WIDTH / 2,
+            2 * settings.VIRTUAL_HEIGHT / 3 + 20,
+            settings.COLOR_RED if self.gamemode == 0 else settings.COLOR_WHITE,
+            center=True,
+            shadowed=True,
+        )
+        render_text(
+            surface,
+            "Hard Mode",
+            settings.FONTS["medium"],
+            settings.VIRTUAL_WIDTH / 2,
+            2 * settings.VIRTUAL_HEIGHT / 3 + 40,
+            settings.COLOR_RED if self.gamemode == 1 else settings.COLOR_WHITE,
+            center=True,
+            shadowed=True,
+        )
 
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if input_id == "confirm" and input_data.pressed:
-            self.state_machine.change("count_down")
+            self.state_machine.change("count_down", gamemode = self.gamemode)
+        elif input_id == "menu_up" and input_data.pressed:
+            if self.gamemode > 0:
+                self.gamemode -= 1
+        elif input_id == "menu_down" and input_data.pressed:
+            if self.gamemode < 1:
+                self.gamemode += 1
+        

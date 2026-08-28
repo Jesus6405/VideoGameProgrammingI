@@ -43,21 +43,6 @@ class World:
         return any(log_pair.update_scored(rect) for log_pair in self.logs)
 
     def update(self, dt: float) -> None:
-        if self.generate_logs:
-            self.logs_spawn_timer += dt
-
-            if self.logs_spawn_timer >= settings.TIME_TO_SPAWN_LOGS:
-                self.logs_spawn_timer = 0.0
-                y = max(
-                    -settings.LOG_HEIGHT + 10,
-                    min(
-                        self.last_log_y + random.randint(-20, 20),
-                        settings.VIRTUAL_HEIGHT + 90 - settings.LOG_HEIGHT,
-                    ),
-                )
-                self.last_log_y = y
-                self.logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y))
-
         self.background_x += -settings.BACK_SCROLL_SPEED * dt
 
         if self.background_x <= -settings.BACKGROUND_LOOPING_POINT:
