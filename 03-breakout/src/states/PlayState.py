@@ -19,6 +19,7 @@ from gale.text import render_text
 
 import settings
 import src.powerups
+from src.Projectile import Projectile
 
 
 class PlayState(BaseState):
@@ -36,6 +37,7 @@ class PlayState(BaseState):
             + settings.PADDLE_GROW_UP_POINTS * (self.paddle.size + 1) * self.level
         )
         self.powerups = params.get("powerups", [])
+        self.projectiles = params.get("projectiles", [])
 
         if not params.get("resume", False):
             self.balls[0].vx = random.randint(-80, 80)
@@ -97,7 +99,7 @@ class PlayState(BaseState):
             # Chance to generate power_ups
             if random.random() < 0.2:
                 r = brick.get_collision_rect()
-                powerup_choice = random.choice(["BallCatch", "TwoMoreBall"])
+                powerup_choice = random.choice(["Cannons", "BallCatch", "TwoMoreBall"])
 
                 self.powerups.append(
                     self.powerups_abstract_factory.get_factory(powerup_choice).create(
@@ -107,6 +109,18 @@ class PlayState(BaseState):
 
         # Removing all balls that are not in play
         self.balls = [ball for ball in self.balls if ball.active]
+
+        # Update projectiles 
+        for projectile in self.projectiles: 
+            projectile.update(dt)
+            if projectile.collides(self.brickset):
+                brick = self.brickset.get_colliding_brick(projectile.get_collision_rect())
+                if brick is not None and not brick.broken:
+                    brick.hit()
+                    self.score += brick.score()
+                    projectile.active = False
+
+        self.projectiles = [p for p in self.projectiles if p.active]
 
         self.brickset.update(dt)
 
@@ -188,6 +202,9 @@ class PlayState(BaseState):
         for ball in self.balls:
             ball.render(surface)
 
+        for projectile in self.projectiles:
+            projectile.render(surface)
+
         for powerup in self.powerups:
             powerup.render(surface)
 
@@ -214,6 +231,7 @@ class PlayState(BaseState):
                 points_to_next_live=self.points_to_next_live,
                 live_factor=self.live_factor,
                 powerups=self.powerups,
+                projectiles = self.projectiles, 
             )
         elif input_id == "enter" and input_data.pressed:
             stuck_balls = [b for b in self.balls if b.stuck]
@@ -224,3 +242,11 @@ class PlayState(BaseState):
                     b.release(vx, vy)
                     settings.SOUNDS["paddle_hit"].stop()
                     settings.SOUNDS["paddle_hit"].play()
+        elif input_id == "fire" and input_data.pressed:
+            if self.paddle.cannons and len(self.projectiles) == 0:
+                p1 = Projectile(self.paddle.x + 2, self.paddle.y - 8)
+                p2 = Projectile(self.paddle.x + self.paddle.width - 6, self.paddle.y - 8)
+                self.projectiles.extend([p1, p2])
+                settings.SOUNDS["paddle_hit"].stop()
+                settings.SOUNDS["paddle_hit"].play()
+

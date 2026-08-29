@@ -35,6 +35,8 @@ class Paddle:
         #Power-up
         self.sticky = False
         self.sticky_timer = 0.0
+        self.cannons = False
+        self.cannons_timer = 0.0
 
     def resize(self, size: int) -> None:
         self.size = size
@@ -64,6 +66,13 @@ class Paddle:
         else:
             self.sticky = False
 
+        if self.cannons_timer > 0: 
+            self.cannons_timer -= dt
+            if self.cannons_timer <= 0:
+                self.cannons = False
+        else: 
+            self.cannons = False
+
     def render(self, surface: pygame.Surface) -> None:
         surface.blit(self.texture, (self.x, self.y), self.frames[self.skin][self.size])
 
@@ -74,4 +83,14 @@ class Paddle:
                 (self.x, self.y),
                 (self.x + self.width - 1, self.y),
                 2
+            )
+
+        if self.cannons:
+            pygame.draw.rect(surface, (80, 80, 100), (self.x + 1, self.y - 4, 4, 6))
+            pygame.draw.rect(surface, (255, 50, 50), (self.x + 2, self.y - 6, 2, 4))
+            pygame.draw.rect(
+                surface, (80, 80, 100), (self.x + self.width - 5, self.y - 4, 4, 6)
+            )
+            pygame.draw.rect(
+                surface, (255, 50, 50), (self.x + self.width - 4, self.y - 6, 2, 4)
             )

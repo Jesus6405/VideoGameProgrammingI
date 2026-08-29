@@ -4,6 +4,10 @@ import settings
 from src.powerups.PowerUp import PowerUp
 
 class BallCatch(PowerUp):
+    """
+    Power-up that enables the paddle to catch the ball on impact.
+    """
+
     def __init__(self, x:int, y:int):
         super().__init__(x, y, 1)
 
