@@ -52,11 +52,19 @@ class PlayState(BaseState):
             ball.solve_world_boundaries()
 
             # Check collision with the paddle
-            if ball.collides(self.paddle):
+            if ball.collides(self.paddle) and not ball.stuck:
+                if self.paddle.sticky:
+                    ball.stuck = True
+                    ball.paddle = self.paddle
+                    ball.offset_x = ball.x - self.paddle.x
+                    ball.vx = 0
+                    ball.vy = 0
+                else: 
+                    ball.rebound(self.paddle)
+                    ball.push(self.paddle)
+
                 settings.SOUNDS["paddle_hit"].stop()
                 settings.SOUNDS["paddle_hit"].play()
-                ball.rebound(self.paddle)
-                ball.push(self.paddle)
 
             # Check collision with brickset
             if not ball.collides(self.brickset):
@@ -86,11 +94,13 @@ class PlayState(BaseState):
                 )
                 self.paddle.inc_size()
 
-            # Chance to generate two more balls
-            if random.random() < 0.1:
+            # Chance to generate power_ups
+            if random.random() < 0.2:
                 r = brick.get_collision_rect()
+                powerup_choice = random.choice(["BallCatch", "TwoMoreBall"])
+
                 self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("TwoMoreBall").create(
+                    self.powerups_abstract_factory.get_factory(powerup_choice).create(
                         r.centerx - 8, r.centery - 8
                     )
                 )
@@ -205,3 +215,12 @@ class PlayState(BaseState):
                 live_factor=self.live_factor,
                 powerups=self.powerups,
             )
+        elif input_id == "enter" and input_data.pressed:
+            stuck_balls = [b for b in self.balls if b.stuck]
+            if stuck_balls:
+                for b in stuck_balls:
+                    vx = random.randint(-30, 30)
+                    vy = random.randint(-170, -100)
+                    b.release(vx, vy)
+                    settings.SOUNDS["paddle_hit"].stop()
+                    settings.SOUNDS["paddle_hit"].play()

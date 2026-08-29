@@ -32,6 +32,10 @@ class Paddle:
         # The paddle only move horizontally
         self.vx = 0
 
+        #Power-up
+        self.sticky = False
+        self.sticky_timer = 0.0
+
     def resize(self, size: int) -> None:
         self.size = size
         self.width = (self.size + 1) * 32
@@ -53,5 +57,21 @@ class Paddle:
         else:
             self.x = min(settings.VIRTUAL_WIDTH - self.width, next_x)
 
+        if self.sticky_timer > 0:
+            self.sticky_timer -= dt
+            if self.sticky_timer <= 0:
+                self.sticky = False
+        else:
+            self.sticky = False
+
     def render(self, surface: pygame.Surface) -> None:
         surface.blit(self.texture, (self.x, self.y), self.frames[self.skin][self.size])
+
+        if self.sticky:
+            pygame.draw.line(
+                surface, 
+                (50, 255, 120),
+                (self.x, self.y),
+                (self.x + self.width - 1, self.y),
+                2
+            )
