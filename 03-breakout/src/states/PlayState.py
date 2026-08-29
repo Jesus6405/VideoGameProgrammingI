@@ -38,6 +38,7 @@ class PlayState(BaseState):
         )
         self.powerups = params.get("powerups", [])
         self.projectiles = params.get("projectiles", [])
+        self.floor_shield_timer = params.get("floor_shield_timer", 0.0)
 
         if not params.get("resume", False):
             self.balls[0].vx = random.randint(-80, 80)
@@ -46,12 +47,26 @@ class PlayState(BaseState):
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
 
+    def activate_floor_shield(self, duration: float) -> None:
+        self.floor_shield_timer = duration
+
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
+
+        if self.floor_shield_timer > 0:
+            self.floor_shield_timer -= dt
 
         for ball in self.balls:
             ball.update(dt)
             ball.solve_world_boundaries()
+
+            # Check floor collision at the bottom
+            if ball.y > settings.VIRTUAL_HEIGHT - 12 and self.floor_shield_timer > 0:
+                ball.y = settings.VIRTUAL_HEIGHT - 12 
+                ball.vy = -abs(ball.vy) if ball.vy != 0 else -150
+                ball.active = True
+                settings.SOUNDS["wall_hit"].stop()
+                settings.SOUNDS["wall_hit"].play()
 
             # Check collision with the paddle
             if ball.collides(self.paddle) and not ball.stuck:
@@ -99,7 +114,7 @@ class PlayState(BaseState):
             # Chance to generate power_ups
             if random.random() < 0.2:
                 r = brick.get_collision_rect()
-                powerup_choice = random.choice(["Cannons", "BallCatch", "TwoMoreBall"])
+                powerup_choice = random.choice(["Cannons", "BallCatch", "TwoMoreBall", "FloorShield"])
 
                 self.powerups.append(
                     self.powerups_abstract_factory.get_factory(powerup_choice).create(
@@ -195,6 +210,19 @@ class PlayState(BaseState):
             (255, 255, 255),
         )
 
+        if self.floor_shield_timer > 0:
+            shield_y = settings.VIRTUAL_HEIGHT - 3
+            pygame.draw.rect(
+                surface, (0, 200, 255), (0, shield_y, settings.VIRTUAL_WIDTH, 3)
+            )
+            pygame.draw.line(
+                surface,
+                (200, 255, 255),
+                (0, shield_y),
+                (settings.VIRTUAL_WIDTH, shield_y),
+                1,
+            )
+
         self.brickset.render(surface)
 
         self.paddle.render(surface)
@@ -232,6 +260,7 @@ class PlayState(BaseState):
                 live_factor=self.live_factor,
                 powerups=self.powerups,
                 projectiles = self.projectiles, 
+                floor_shield_timer = self.floor_shield_timer
             )
         elif input_id == "enter" and input_data.pressed:
             stuck_balls = [b for b in self.balls if b.stuck]

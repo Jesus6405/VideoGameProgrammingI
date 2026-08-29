@@ -19,6 +19,7 @@ class PauseState(BaseState):
         self.points_to_next_live = params["points_to_next_live"]
         self.powerups = params["powerups"]
         self.projectiles = params["projectiles"]
+        self.floor_shield_timer = params["floor_shield_timer"]
         settings.SOUNDS["pause"].play()
 
     def render(self, surface: pygame.Surface) -> None:
@@ -62,6 +63,19 @@ class PauseState(BaseState):
         for powerup in self.powerups:
             powerup.render(surface)
 
+        if self.floor_shield_timer > 0:
+            shield_y = settings.VIRTUAL_HEIGHT - 3
+            pygame.draw.rect(
+                surface, (0, 200, 255), (0, shield_y, settings.VIRTUAL_WIDTH, 3)
+            )
+            pygame.draw.line(
+                surface,
+                (200, 255, 255),
+                (0, shield_y),
+                (settings.VIRTUAL_WIDTH, shield_y),
+                1,
+            )
+
         render_text(
             surface,
             "Pause",
@@ -86,5 +100,6 @@ class PauseState(BaseState):
                 live_factor=self.live_factor,
                 powerups=self.powerups,
                 resume=True,
-                projectiles = self.projectiles
+                projectiles = self.projectiles,
+                floor_shield_timer = self.floor_shield_timer,
             )
