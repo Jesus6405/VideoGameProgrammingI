@@ -47,19 +47,23 @@ class Board:
         )
 
     def _initialize_tiles(self) -> None:
-        self.tiles = [
-            [None for _ in range(settings.BOARD_WIDTH)]
-            for _ in range(settings.BOARD_HEIGHT)
-        ]
-        for i in range(settings.BOARD_HEIGHT):
-            for j in range(settings.BOARD_WIDTH):
-                color = random.randint(0, settings.NUM_COLORS - 1)
-                while self._is_match_generated(i, j, color):
+        while True: 
+            self.tiles = [
+                [None for _ in range(settings.BOARD_WIDTH)]
+                for _ in range(settings.BOARD_HEIGHT)
+            ]
+            for i in range(settings.BOARD_HEIGHT):
+                for j in range(settings.BOARD_WIDTH):
                     color = random.randint(0, settings.NUM_COLORS - 1)
+                    while self._is_match_generated(i, j, color):
+                        color = random.randint(0, settings.NUM_COLORS - 1)
 
-                self.tiles[i][j] = Tile(
-                    i, j, color, random.randint(0, settings.NUM_VARIETIES - 1)
-                )
+                    self.tiles[i][j] = Tile(
+                        i, j, color, random.randint(0, settings.NUM_VARIETIES - 1)
+                    )
+
+            if self.has_valid_moves():
+                break
 
     def _calculate_match_rec(self, tile: Tile) -> Set[Tile]:
         if tile in self.in_stack:
@@ -209,3 +213,59 @@ class Board:
                     tweens.append((tile, {"y": tile.i * settings.TILE_SIZE}))
 
         return tweens
+
+    def _check_match_at(self, i: int, j: int) -> bool:
+        tile = self.tiles[i][j]
+        if tile is None:
+            return False
+        color = tile.color
+
+        # Check horizontal match
+        h_count = 1
+        c = j - 1
+        while (c >= 0 and self.tiles[i][c] is not None and self.tiles[i][c].color == color):
+            h_count += 1
+            c -= 1
+        c = j + 1
+        while (c < settings.BOARD_WIDTH and self.tiles[i][c] is not None and self.tiles[i][c].color == color):
+            h_count += 1
+            c += 1
+
+        if h_count >= 3:
+            return True
+
+        # Check vertical match
+        v_count = 1
+        r = i - 1
+        while (r >= 0 and self.tiles[r][j] is not None and self.tiles[r][j].color == color):
+            v_count += 1
+            r -= 1
+        r = i + 1
+        while (r < settings.BOARD_HEIGHT and self.tiles[r][j] is not None and self.tiles[r][j].color == color):
+            v_count += 1
+            r += 1
+
+        if v_count >= 3:
+            return True
+
+        return False
+
+    def _swap_creates_match(self, i1: int, j1: int, i2: int, j2: int) -> bool:
+        self.tiles[i1][j1], self.tiles[i2][j2] = self.tiles[i2][j2], self.tiles[i1][j1]
+        has_match = self._check_match_at(i1, j1) or self._check_match_at(i2, j2)
+        self.tiles[i1][j1], self.tiles[i2][j2] = self.tiles[i2][j2], self.tiles[i1][j1]
+        return has_match
+
+    def has_valid_moves(self) -> bool:
+        for i in range(settings.BOARD_HEIGHT):
+            for j in range(settings.BOARD_WIDTH):
+                if j + 1 < settings.BOARD_WIDTH:
+                    if self._swap_creates_match(i, j, i, j + 1):
+                        return True
+                if i + 1 < settings.BOARD_HEIGHT:
+                    if self._swap_creates_match(i, j, i + 1, j):
+                        return True
+        return False
+
+    def recreate_board(self) -> None:
+        self._initialize_tiles()

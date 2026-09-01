@@ -199,22 +199,49 @@ class PlayState(BaseState):
             target_y2 = start_i * settings.TILE_SIZE
 
             def arrive():
-                (
-                    self.board.tiles[start_i][start_j],
-                    self.board.tiles[target_i][target_j],
-                ) = (
-                    self.board.tiles[target_i][target_j],
-                    self.board.tiles[start_i][start_j],
-                )
-                tile1.i, tile1.j, tile2.i, tile2.j = (
-                    target_i,
-                    target_j,
-                    start_i,
-                    start_j,
-                )
+                (self.board.tiles[start_i][start_j], self.board.tiles[target_i][target_j]) = (self.board.tiles[target_i][target_j], self.board.tiles[start_i][start_j])
+                tile1.i, tile1.j, tile2.i, tile2.j = (target_i, target_j, start_i, start_j)
                 tile1.x, tile1.y = target_x1, target_y1
                 tile2.x, tile2.y = target_x2, target_y2
-                self._calculate_matches([tile1, tile2])
+
+                matches = self.board.calculate_matches_for([tile1, tile2])
+
+                if matches is None: 
+                    settings.SOUNDS["error"].play() 
+
+                    def arrive_back(): 
+                        (self.board.tiles[start_i][start_j], self.board.tiles[target_i][target_j]) = (self.board.tiles[target_i][target_j], self.board.tiles[start_i][start_j])
+                        tile1.i, tile1.j, tile2.i, tile2.j = (start_i, start_j, target_i, target_j)
+                        tile1.x, tile1.y = target_x2, target_y2
+                        tile2.x, tile2.y = target_x1, target_y1
+                        self.active = True
+
+                    Timer.tween(
+                        0.25,
+                        [
+                            (tile1, {"x": target_x2, "y": target_y2}),
+                            (tile2, {"x": target_x1, "y": target_y1}),
+                        ],
+                        on_finish=arrive_back,
+                    )
+                else: 
+                    settings.SOUNDS["match"].stop()
+                    settings.SOUNDS["match"].play()
+
+                    for match in matches:
+                        self.score += len(match) * 50
+
+                    self.board.remove_matches()
+
+                    falling_tiles = self.board.get_falling_tiles()
+
+                    Timer.tween(
+                        0.25,
+                        falling_tiles,
+                        on_finish=lambda: self._calculate_matches(
+                            [item[0] for item in falling_tiles]
+                        ),
+                    )
 
             Timer.tween(
                 0.25,
@@ -235,6 +262,8 @@ class PlayState(BaseState):
         matches = self.board.calculate_matches_for(tiles)
 
         if matches is None:
+            if not self.board.has_valid_moves():
+                self.board.recreate_board()
             self.active = True
             return
 
