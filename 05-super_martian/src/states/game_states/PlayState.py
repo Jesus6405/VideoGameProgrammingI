@@ -90,27 +90,36 @@ class PlayState(BaseState):
             self.clock = Clock(30)
 
             def countdown_timer():
-                if self.level_completed or self.key_block_spawned:
-                    return
-                
-                self.clock.count_down()
+                current_state = self.state_machine.current
 
-                if 0 < self.clock.time <= 5:
+                if not isinstance(current_state, PlayState):
+                    return
+
+                if current_state.level_completed or current_state.key_block_spawned:
+                    return 
+                
+                current_state.clock.count_down()
+
+                if 0 < current_state.clock.time <= 5:
                     settings.SOUNDS["timer"].play()
 
-                if self.clock.time == 0:
-                    self.player.change_state("dead")
+                if current_state.clock.time == 0:
+                    current_state.player.change_state("dead")
 
             Timer.every(1, countdown_timer)
         else:
+            self.clock.pause = False
             Timer.resume()
 
-        # Opening cartoon iris-in transition
-        Timer.tween(
-            0.6,
-            [(self, {"circle_radius": self.max_circle_radius})],
-            ease_function_name="out_quad",
-        )
+        if not self.from_pause_state:
+            # Opening cartoon iris-in transition
+            Timer.tween(
+                0.6,
+                [(self, {"circle_radius": self.max_circle_radius})],
+                ease_function_name="out_quad",
+            )
+        else:
+            self.circle_radius = self.max_circle_radius
 
     def on_level_complete(self) -> None:
         if self.level_completed:
