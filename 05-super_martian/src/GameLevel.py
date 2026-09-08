@@ -21,6 +21,8 @@ from src.Creature import Creature
 from src.FlyingCreature import FlyingCreature
 from src.GameEntity import GameEntity
 from src.GameItem import GameItem
+from src.Key import Key
+from src.KeyBlock import KeyBlock
 from src.definitions import creatures, items
 
 
@@ -29,6 +31,9 @@ class GameLevel:
         self.tilemap = load_tiled_map(settings.TILEMAPS[num_level])
         self.creatures = []
         self.items = []
+        self.key_block: Optional[KeyBlock] = None
+        self.key: Optional[Key] = None
+        self.on_key_collected: Optional[Any] = None
 
         for obj in self.tilemap.object_layers.get("creatures", []):
             self.add_creature(
@@ -122,6 +127,19 @@ class GameLevel:
 
         self._schedule_flying_creature_spawn()
 
+    def spawn_key_block(self, x: float, y: float) -> None:
+        if self.key_block is not None:
+            return
+        settings.SOUNDS["block_appear"].stop()
+        settings.SOUNDS["block_appear"].play()
+        self.key_block = KeyBlock(x, y, on_spawn_key=self.spawn_key)
+
+    def spawn_key(self, block_x: float, block_y: float) -> None:
+        if self.key is not None:
+            return
+        self.key = Key(block_x, block_y, on_collect_callback=self.on_key_collected)
+        self.key.spawn_from_block(block_x, block_y)
+
     def get_rect(self) -> pygame.Rect:
         return pygame.Rect(0, 0, self.tilemap.pixel_width, self.tilemap.pixel_height)
 
@@ -134,6 +152,9 @@ class GameLevel:
             creature for creature in self.creatures if not creature.is_dead
         ]
 
+        if self.key is not None and self.key.active:
+            self.key.update(dt)
+
     def render(self, surface: pygame.Surface, camera: Any) -> None:
         self.tilemap.render(surface, camera)
         for creature in self.creatures:
@@ -141,3 +162,7 @@ class GameLevel:
         for item in self.items:
             if item.active:
                 item.render(surface, camera)
+        if self.key_block is not None and self.key_block.active:
+            self.key_block.render(surface, camera)
+        if self.key is not None and self.key.active:
+            self.key.render(surface, camera)

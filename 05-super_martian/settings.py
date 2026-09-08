@@ -70,12 +70,16 @@ TEXTURES = {
     "tiles": pygame.image.load(BASE_DIR / "assets" / "graphics" / "tileset.png"),
     "martian": pygame.image.load(BASE_DIR / "assets" / "graphics" / "martian.png"),
     "creatures": pygame.image.load(BASE_DIR / "assets" / "graphics" / "creatures.png"),
+    "key_block": pygame.image.load(BASE_DIR / "assets" / "graphics" / "key_block.png"),
+    "key": pygame.image.load(BASE_DIR / "assets" / "graphics" / "key.png"),
 }
 
 FRAMES = {
     "tiles": frames.generate_frames(TEXTURES["tiles"], 16, 16),
     "martian": frames.generate_frames(TEXTURES["martian"], 16, 20),
     "creatures": frames.generate_frames(TEXTURES["creatures"], 16, 16),
+    "key_block": frames.generate_frames(TEXTURES["key_block"], 16, 16),
+    "key": frames.generate_frames(TEXTURES["key"], 16, 16),
 }
 
 SOUNDS = {
@@ -85,9 +89,25 @@ SOUNDS = {
     "jump": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "jump.wav"),
     "timer": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "timer.wav"),
     "count": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "count.wav"),
+    "win": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "win.wav"),
+    "block_hit": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "block_hit.wav"),
+    "block_appear": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "block_appear.wav"),
+    "key_spawn": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "key_spawn.wav"),
 }
 
 SOUNDS["pickup_coin"].set_volume(0.5)
+
+# Score targets required for each level to spawn the special key block
+TARGET_SCORES = {
+    1: 50,
+    2: 200,
+}
+
+# Positions where the special key block spawns in each level (x, y in pixels)
+KEY_BLOCK_POSITIONS = {
+    1: (720, 25),
+    2: (760, 100),
+}
 
 FONTS = {
     "small": pygame.font.Font(BASE_DIR / "assets" / "fonts" / "font.ttf", 8),

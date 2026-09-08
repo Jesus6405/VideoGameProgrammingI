@@ -27,6 +27,8 @@ class PauseState(BaseState):
         self.tilemap = self.game_level.tilemap
         self.player = enter_params["player"]
         self.clock = enter_params["clock"]
+        self.key_block_spawned = enter_params["key_block_spawned"]
+        self.level_completed = enter_params["level_completed"]
         pygame.mixer.music.pause()
 
     def exit(self) -> None:
@@ -65,4 +67,7 @@ class PauseState(BaseState):
                 game_level=self.game_level,
                 player=self.player,
                 clock=self.clock,
+                from_pause_state = True,
+                key_block_spawned = self.key_block_spawned,
+                level_completed = self.level_completed,
             )
