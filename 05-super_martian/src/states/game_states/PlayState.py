@@ -271,9 +271,11 @@ class PlayState(BaseState):
             )
             mask.fill((0, 0, 0, 255))
 
+            camera_x, camera_y = self.camera.offset
+
             # Screen position of the player
-            player_screen_x = self.player.x - self.camera.x
-            player_screen_y = self.player.y - self.camera.y + (self.player.height // 2)
+            player_screen_x = self.player.x - camera_x + (self.player.width // 2)
+            player_screen_y = self.player.y - camera_y + (self.player.height // 2)
 
             if self.circle_radius > 0:
                 pygame.draw.circle(
