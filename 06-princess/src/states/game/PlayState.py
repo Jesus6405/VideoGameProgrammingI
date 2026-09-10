@@ -55,6 +55,9 @@ class PlayState(BaseState):
             "pot-walk": lambda sm: player_states.PlayerPotWalkState(
                 self.player, sm, self.dungeon
             ),
+            "bow": lambda sm: player_states.PlayerBowState(
+                self.player, sm, self.dungeon
+            ),
         }
         self.player.change_state("idle")
 
@@ -68,6 +71,8 @@ class PlayState(BaseState):
         self.state_machine.change("game-over", player=self.player)
 
     def update(self, dt: float) -> None:
+        if self.player.has_bow:
+            self.dungeon.chest_opened = True
         self.dungeon.update(dt)
 
     def render(self, surface: pygame.Surface) -> None:

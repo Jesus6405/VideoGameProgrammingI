@@ -61,4 +61,18 @@ GAME_OBJECT_DEFS: Dict[str, Dict[str, Any]] = {
         },
         "on_consume": _pickup_heart,
     },
+    "chest": {
+        "type": "chest",
+        "texture": "chest",
+        "frame": 1,
+        "width": 19,
+        "height": 21,
+        "solid": True,
+        "consumable": False,
+        "default_state": "closed",
+        "states": {
+            "closed": {"frame": 1},
+            "open": {"frame": 2},
+        },
+    },
 }

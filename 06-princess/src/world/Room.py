@@ -16,6 +16,7 @@ import pygame
 from gale.tilemap import TileMap
 
 import settings
+from src.Bow import Bow
 from src.definitions.entity import ENTITY_DEFS
 from src.definitions.game_objects import GAME_OBJECT_DEFS
 from src.Entity import Entity
@@ -84,6 +85,7 @@ class Room:
         self,
         player: TypeVar("Player"),
         on_game_over: Callable[[], None],
+        spawn_chest: bool = False
     ) -> None:
         # Reference to player for collisions, etc.
         self.player = player
@@ -100,7 +102,7 @@ class Room:
         self._generate_entities()
 
         self.objects: List[GameObject] = []
-        self._generate_objects()
+        self._generate_objects(spawn_chest)
 
         # Doorways that lead to other dungeon rooms.
         self.doorways = [
@@ -252,6 +254,38 @@ class Room:
                 player.change_state("pot-lift", pot=obj)
                 return
 
+    def open_adjacent_chest(self, player: TypeVar("Player")) -> None:
+        """
+        Looks for a closed chest directly in front of the player (one
+        tile away) and, if found, opens it and grants the bow.
+        """
+        player_y = player.y + player.height / 2
+        player_height = player.height - player.height / 2
+        player_col = int((player.x + player.width / 2) // settings.TILE_SIZE)
+        player_row = int((player_y + player_height / 2) // settings.TILE_SIZE)
+
+        for obj in self.objects:
+            if obj.type != "chest" or obj.state != "closed":
+                continue
+
+            obj_col = int((obj.x + obj.width / 2) // settings.TILE_SIZE)
+            obj_row = int((obj.y + obj.height / 2) // settings.TILE_SIZE)
+
+            adjacent = (
+                (player.direction == "right" and obj_row == player_row and obj_col == player_col + 1)
+                or (player.direction == "left" and obj_row == player_row and obj_col == player_col - 1)
+                or (player.direction == "up" and obj_col == player_col and obj_row == player_row - 1)
+                or (player.direction == "down" and obj_col == player_col and obj_row == player_row + 1)
+            )
+
+            if adjacent:
+                obj.state = "open"
+                obj.solid = False
+                player.has_bow = True
+                player.bow = Bow()
+                settings.SOUNDS["door"].play()
+                return
+
     def _generate_walls_and_floors(self) -> None:
         """
         Generates the walls and floors of the room, randomizing the various
@@ -315,7 +349,7 @@ class Room:
             entity.change_state("walk")
             self.entities.append(entity)
 
-    def _generate_objects(self) -> None:
+    def _generate_objects(self, spawn_chest: bool = False) -> None:
         """Randomly creates an assortment of obstacles for the player to navigate around."""
         switch = GameObject(
             GAME_OBJECT_DEFS["switch"],
@@ -343,6 +377,23 @@ class Room:
                 settings.SOUNDS["door"].play()
 
         switch.on_collide = open_all_doors
+
+        if spawn_chest:
+            chest = GameObject(
+                GAME_OBJECT_DEFS["chest"],
+                random.randint(
+                    settings.MAP_RENDER_OFFSET_X + settings.TILE_SIZE,
+                    settings.VIRTUAL_WIDTH - settings.TILE_SIZE * 2 - 20,
+                ),
+                random.randint(
+                    settings.MAP_RENDER_OFFSET_Y + settings.TILE_SIZE,
+                    settings.MAP_HEIGHT * settings.TILE_SIZE
+                    + settings.MAP_RENDER_OFFSET_Y
+                    - settings.TILE_SIZE
+                    - 33,
+                ),
+            )
+            self.objects.append(chest)
 
         for y in range(2, self.height):
             for x in range(2, self.width):

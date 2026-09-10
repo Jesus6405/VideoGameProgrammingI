@@ -51,8 +51,22 @@ class GameObject:
 
     def render(self, surface: pygame.Surface, offset_x: float = 0, offset_y: float = 0) -> None:
         frame_index = self.states[self.state].get("frame", self.frame_index)
-        surface.blit(
-            settings.TEXTURES[self.texture_id],
-            (self.x + offset_x, self.y + offset_y),
-            settings.frame(self.texture_id, frame_index),
-        )
+        frame_rect = settings.frame(self.texture_id, frame_index)
+
+        # Arrows need rotation depending on flight direction.
+        arrow_dir = getattr(self, "arrow_direction", None)
+        if arrow_dir and arrow_dir != "right":
+            sub = settings.TEXTURES[self.texture_id].subsurface(frame_rect).copy()
+            if arrow_dir == "left":
+                sub = pygame.transform.rotate(sub, 180)
+            elif arrow_dir == "up":
+                sub = pygame.transform.rotate(sub, 90)
+            elif arrow_dir == "down":
+                sub = pygame.transform.rotate(sub, -90)
+            surface.blit(sub, (self.x + offset_x, self.y + offset_y))
+        else:
+            surface.blit(
+                settings.TEXTURES[self.texture_id],
+                (self.x + offset_x, self.y + offset_y),
+                frame_rect,
+            )

@@ -17,6 +17,7 @@ from gale.timer import Timer
 
 import settings
 from src.world.Room import Room
+import random
 
 
 class Dungeon:
@@ -28,8 +29,11 @@ class Dungeon:
         self.player = player
         self.on_game_over = on_game_over
 
+        self.chest_spawned = False
+        self.chest_opened = False 
+
         # Current room we're operating in.
-        self.current_room = Room(self.player, self.on_game_over)
+        self.current_room = self._make_room()
 
         # Room we're moving the camera to during a shift; becomes the
         # active room afterwards.
@@ -40,14 +44,28 @@ class Dungeon:
         self.camera_y = 0
         self.shifting = False
 
+
+    def _make_room(self) -> Room:
+        spawn_chest = not self.chest_spawned
+        if spawn_chest:
+            if random.random() < 0.2:
+                self.chest_spawned = True
+            else: 
+                spawn_chest = False
+        return Room(self.player, self.on_game_over, spawn_chest=spawn_chest)
+
     def begin_shifting(self, shift_x: float, shift_y: float) -> None:
         """
         Prepares for the camera shifting process, kicking off a tween of the
         camera position. Triggered via a doorway collision, from
         PlayerWalkState/PlayerPotWalkState.
         """
+
+        if self.chest_spawned and not self.chest_opened:
+            self.chest_spawned = False
+
         self.shifting = True
-        self.next_room = Room(self.player, self.on_game_over)
+        self.next_room = self._make_room()
 
         # Start all doors in next room as open until we get in.
         for doorway in self.next_room.doorways:

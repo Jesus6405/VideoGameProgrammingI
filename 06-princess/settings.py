@@ -26,6 +26,7 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "move_dow
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "sword")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "enter")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_KP_ENTER, "enter")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_f, "fire")
 
 TITLE = "The Legend of the Princess"
 
@@ -89,6 +90,11 @@ TEXTURES = {
     "character-pot-walk": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "character_pot_walk.png"
     ),
+    "character-bow": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "character_bow.png"
+    ),
+    "arrow": pygame.image.load(BASE_DIR / "assets" / "graphics" / "arrow.png"),
+    "chest": pygame.image.load(BASE_DIR / "assets" / "graphics" / "chest.png"),
 }
 
 # Used by Room's gale.tilemap.TileMap: TILE_* ids above are 1-based,
@@ -106,6 +112,9 @@ FRAMES = {
     "entities": frames.generate_frames(TEXTURES["entities"], 16, 16),
     "character-pot-lift": frames.generate_frames(TEXTURES["character-pot-lift"], 16, 32),
     "character-pot-walk": frames.generate_frames(TEXTURES["character-pot-walk"], 16, 32),
+    "character-bow": frames.generate_frames(TEXTURES["character-bow"], 32, 32),
+    "arrow": frames.generate_frames(TEXTURES["arrow"], 16, 8),
+    "chest": frames.generate_frames(TEXTURES["chest"], 19, 21),
 }
 
 

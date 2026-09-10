@@ -34,6 +34,12 @@ class PlayerIdleState(BaseEntityState):
         self.entity.change_animation(f"idle-{self.entity.direction}")
 
     def update(self, dt: float) -> None:
+        if self.entity.fire_requested:
+            self.entity.fire_requested = False
+            if self.entity.has_bow:
+                self.entity.change_state("bow")
+                return
+
         if self.entity.sword_requested:
             self.entity.sword_requested = False
             self.entity.change_state("swing-sword")
@@ -41,6 +47,7 @@ class PlayerIdleState(BaseEntityState):
 
         if self.entity.interact_requested:
             self.entity.interact_requested = False
+            self.dungeon.current_room.open_adjacent_chest(self.entity)
             self.dungeon.current_room.take_adjacent_pot(self.entity)
 
             if self.entity.state_machine.current is not self:
