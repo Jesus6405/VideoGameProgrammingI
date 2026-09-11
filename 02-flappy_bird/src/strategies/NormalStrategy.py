@@ -10,7 +10,7 @@ class NormalStrategy(DifficultyStrategy):
         
             if world.logs_spawn_timer >= settings.TIME_TO_SPAWN_LOGS:
                 world.logs_spawn_timer = 0.0
-                y = max(-settings.LOG_HEIGHT + 10, min(world.last_log_y + random.randint(-20, 20), settings.VIRTUAL_HEIGHT - 115 - settings.LOG_HEIGHT))
+                y = max(settings.MIN_LOG_Y, min(world.last_log_y + random.randint(-20, 20), settings.MAX_LOG_Y))
                 world.last_log_y = y
                 world.logs.append(world.log_pair_factory.create(settings.VIRTUAL_WIDTH, y))
 
