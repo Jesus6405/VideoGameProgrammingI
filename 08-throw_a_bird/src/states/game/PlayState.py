@@ -95,6 +95,7 @@ HUD_TEXT = "Drag the bird to aim and release to fling. Drag elsewhere to pan."
 class PlayState(BaseState):
     def enter(self) -> None:
         self.world = World(gravity=settings.GRAVITY)
+        self.world.on_collision_begin(self._on_collision_begin)
 
         self.level = Level(self.world)
         self.bird = Bird(self.world, self.level.bird_start.x, self.level.bird_start.y)
@@ -129,6 +130,13 @@ class PlayState(BaseState):
         self.world.fixed_update()
         self.level.fixed_update()
 
+        if self.flinging and not self.has_collided:
+            for bird in self.birds:
+                for other in bird.body.touching_bodies:
+                    if other.user_data != "wind":
+                        self.has_collided = True
+                        break
+
     def update(self, dt: float) -> None:
         self.level.update(dt)
 
@@ -147,6 +155,15 @@ class PlayState(BaseState):
         self._update_zoom(dt)
         self.camera.update(dt)
 
+    def _on_collision_begin(self, body_a, body_b) -> None:
+        if not self.flinging:
+            return
+        for bird in self.birds:
+            if body_a == bird.body or body_b == bird.body:
+                other = body_a if body_b == bird.body else body_b
+                if other.user_data != "wind":
+                    self.has_collided = True
+
     def _hold_bird_at_rest(self) -> None:
         self.bird.reset()
 
@@ -164,26 +181,35 @@ class PlayState(BaseState):
         self.bird.body.velocity = (0, 0)
         self.bird.body.angular_velocity = 0.0
 
-    def _update_idle(self) -> None:
+    def _is_bird_idle(self, bird: Bird) -> bool: 
         linear_speed = self.bird.body.velocity.length()
         angular_speed = abs(self.bird.body.angular_velocity)
 
-        if (
-            linear_speed < IDLE_LINEAR_SPEED_THRESHOLD
-            and angular_speed < IDLE_ANGULAR_SPEED_THRESHOLD
-        ):
+        return (linear_speed < IDLE_LINEAR_SPEED_THRESHOLD and angular_speed < IDLE_ANGULAR_SPEED_THRESHOLD)
+
+    def _update_idle(self) -> None:
+        all_idle = all(self._is_bird_idle(bird) for bird in self.birds)
+
+        if all_idle:
             self.idle_frames += 1
 
             if self.idle_frames > IDLE_FRAMES_LIMIT:
                 self.flinging = False
                 self.idle_frames = 0
+                self.has_split = False
+                self.has_collided = False
+
+                for bird in self.birds[1:]:
+                    bird.destroy(self.world)
+                self.birds = [self.bird]
+
                 self.bird.reset()
                 self.camera_target.update(self.bird.position)
         else:
             self.idle_frames = 0
 
     def _update_zoom(self, dt: float) -> None:
-        distance = abs(self.bird.position.x - self.bird.initial_position.x)
+        distance = max(abs(b.position.x - self.bird.initial_position.x) for b in self.birds)
         reach = max(1.0, self.bird.initial_position.x)
         target_ratio = max(
             CAMERA_ZOOM_MIN, min(CAMERA_ZOOM_MAX, math.sqrt(distance / reach))
@@ -296,6 +322,8 @@ class PlayState(BaseState):
         scale = FLING_IMPULSE_SCALE * self.bird.mass
         self.bird.body.apply_impulse(pull.x * scale, pull.y * scale)
         self.flinging = True
+        self.has_collided = False
+        self.has_split = False
         self.idle_frames = 0
 
     def _on_touch_motion(self, input_data: InputData) -> None:
