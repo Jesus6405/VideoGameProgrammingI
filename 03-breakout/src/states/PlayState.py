@@ -19,6 +19,7 @@ from gale.text import render_text
 
 import settings
 import src.powerups
+from src.Projectile import Projectile
 
 
 class PlayState(BaseState):
@@ -36,6 +37,8 @@ class PlayState(BaseState):
             + settings.PADDLE_GROW_UP_POINTS * (self.paddle.size + 1) * self.level
         )
         self.powerups = params.get("powerups", [])
+        self.projectiles = params.get("projectiles", [])
+        self.floor_shield_timer = params.get("floor_shield_timer", 0.0)
 
         if not params.get("resume", False):
             self.balls[0].vx = random.randint(-80, 80)
@@ -44,19 +47,41 @@ class PlayState(BaseState):
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
 
+    def activate_floor_shield(self, duration: float) -> None:
+        self.floor_shield_timer = duration
+
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
+
+        if self.floor_shield_timer > 0:
+            self.floor_shield_timer -= dt
 
         for ball in self.balls:
             ball.update(dt)
             ball.solve_world_boundaries()
 
+            # Check floor collision at the bottom
+            if ball.y > settings.VIRTUAL_HEIGHT - 12 and self.floor_shield_timer > 0:
+                ball.y = settings.VIRTUAL_HEIGHT - 12 
+                ball.vy = -abs(ball.vy) if ball.vy != 0 else -150
+                ball.active = True
+                settings.SOUNDS["wall_hit"].stop()
+                settings.SOUNDS["wall_hit"].play()
+
             # Check collision with the paddle
-            if ball.collides(self.paddle):
+            if ball.collides(self.paddle) and not ball.stuck:
+                if self.paddle.sticky:
+                    ball.stuck = True
+                    ball.paddle = self.paddle
+                    ball.offset_x = ball.x - self.paddle.x
+                    ball.vx = 0
+                    ball.vy = 0
+                else: 
+                    ball.rebound(self.paddle)
+                    ball.push(self.paddle)
+
                 settings.SOUNDS["paddle_hit"].stop()
                 settings.SOUNDS["paddle_hit"].play()
-                ball.rebound(self.paddle)
-                ball.push(self.paddle)
 
             # Check collision with brickset
             if not ball.collides(self.brickset):
@@ -86,17 +111,31 @@ class PlayState(BaseState):
                 )
                 self.paddle.inc_size()
 
-            # Chance to generate two more balls
-            if random.random() < 0.1:
+            # Chance to generate power_ups
+            if random.random() < 0.2:
                 r = brick.get_collision_rect()
+                powerup_choice = random.choice(["Cannons", "BallCatch", "TwoMoreBall", "FloorShield"])
+
                 self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("TwoMoreBall").create(
+                    self.powerups_abstract_factory.get_factory(powerup_choice).create(
                         r.centerx - 8, r.centery - 8
                     )
                 )
 
         # Removing all balls that are not in play
         self.balls = [ball for ball in self.balls if ball.active]
+
+        # Update projectiles 
+        for projectile in self.projectiles: 
+            projectile.update(dt)
+            if projectile.collides(self.brickset):
+                brick = self.brickset.get_colliding_brick(projectile.get_collision_rect())
+                if brick is not None and not brick.broken:
+                    brick.hit()
+                    self.score += brick.score()
+                    projectile.active = False
+
+        self.projectiles = [p for p in self.projectiles if p.active]
 
         self.brickset.update(dt)
 
@@ -171,12 +210,28 @@ class PlayState(BaseState):
             (255, 255, 255),
         )
 
+        if self.floor_shield_timer > 0:
+            shield_y = settings.VIRTUAL_HEIGHT - 3
+            pygame.draw.rect(
+                surface, (0, 200, 255), (0, shield_y, settings.VIRTUAL_WIDTH, 3)
+            )
+            pygame.draw.line(
+                surface,
+                (200, 255, 255),
+                (0, shield_y),
+                (settings.VIRTUAL_WIDTH, shield_y),
+                1,
+            )
+
         self.brickset.render(surface)
 
         self.paddle.render(surface)
 
         for ball in self.balls:
             ball.render(surface)
+
+        for projectile in self.projectiles:
+            projectile.render(surface)
 
         for powerup in self.powerups:
             powerup.render(surface)
@@ -204,4 +259,23 @@ class PlayState(BaseState):
                 points_to_next_live=self.points_to_next_live,
                 live_factor=self.live_factor,
                 powerups=self.powerups,
+                projectiles = self.projectiles, 
+                floor_shield_timer = self.floor_shield_timer
             )
+        elif input_id == "enter" and input_data.pressed:
+            stuck_balls = [b for b in self.balls if b.stuck]
+            if stuck_balls:
+                for b in stuck_balls:
+                    vx = random.randint(-30, 30)
+                    vy = random.randint(-170, -100)
+                    b.release(vx, vy)
+                    settings.SOUNDS["paddle_hit"].stop()
+                    settings.SOUNDS["paddle_hit"].play()
+        elif input_id == "fire" and input_data.pressed:
+            if self.paddle.cannons and len(self.projectiles) == 0:
+                p1 = Projectile(self.paddle.x + 2, self.paddle.y - 8)
+                p2 = Projectile(self.paddle.x + self.paddle.width - 6, self.paddle.y - 8)
+                self.projectiles.extend([p1, p2])
+                settings.SOUNDS["paddle_hit"].stop()
+                settings.SOUNDS["paddle_hit"].play()
+

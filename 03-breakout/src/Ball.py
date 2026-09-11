@@ -31,10 +31,17 @@ class Ball:
         self.frame = random.randint(0, 6)
         self.active = True
 
+        self.stuck = False
+        self.offset_x = 0.0
+        self.paddle = None
+
     def get_collision_rect(self) -> pygame.Rect:
         return pygame.Rect(self.x, self.y, self.width, self.height)
 
     def solve_world_boundaries(self) -> None:
+        if self.stuck:
+            return 
+
         r = self.get_collision_rect()
 
         if r.left < 0:
@@ -56,13 +63,23 @@ class Ball:
             settings.SOUNDS["hurt"].play()
             self.active = False
 
+    def release(self, vx: float, vy: float) -> None:
+        self.stuck = False
+        self.vx = vx
+        self.vy = vy
+
     def collides(self, another: Any) -> bool:
         return self.get_collision_rect().colliderect(another.get_collision_rect())
 
     def update(self, dt: float) -> None:
-        self.x += self.vx * dt
-        self.y += self.vy * dt
-
+        if self.stuck and self.paddle is not None: 
+            self.x = self.paddle.x + self.offset_x
+            self.x = max (self.paddle.x, min(self.paddle.x + self.paddle.width -self.width, self.x))
+            self.y = self.paddle.y - self.height
+        else:
+            self.x += self.vx * dt
+            self.y += self.vy * dt
+       
     def render(self, surface):
         surface.blit(
             self.texture, (self.x, self.y), settings.FRAMES["balls"][self.frame]
