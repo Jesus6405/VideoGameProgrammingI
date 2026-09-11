@@ -19,6 +19,7 @@ from gale.state import BaseState
 import settings
 from src.definitions.entity import ENTITY_DEFS
 from src.world.World import World
+from src.states.game.PartyStatusState import PartyStatusState
 
 # Human-friendly labels for World.current_region_name, shown on a save
 # slot's stat card (see SlotSelectState) instead of the raw internal key.
@@ -76,6 +77,10 @@ class PlayState(BaseState):
 
             self.world.freeze_party()
             self.state_machine.push(PauseMenuState(self.state_machine), play_state=self)
+            return
+        elif input_id == "status" and input_data.pressed:
+            self.world.freeze_party()
+            self.state_machine.push(PartyStatusState(self.state_machine), play_state=self)
             return
 
         self.world.on_input(input_id, input_data)

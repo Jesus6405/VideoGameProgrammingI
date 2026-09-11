@@ -27,6 +27,7 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "space")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "enter")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_KP_ENTER, "enter")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_p, "pause")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_s, "status")
 
 TITLE = "Ultimate Fantasy"
 
