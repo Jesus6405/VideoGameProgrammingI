@@ -34,7 +34,7 @@ class World:
         self.power_up_spawn_timer: float = 0.0
         self.next_powerup_spawn: float = random.uniform(8.0, 15.0)
 
-        self.last_log_y: float = -settings.LOG_HEIGHT + random.randint(0, 80) + 20
+        self.last_log_y: float = settings.MIN_LOG_Y + random.randint(0, 80) + 20
         self.log_pair_factory: Factory = Factory(LogPair)
         self.ghost_power_up_factory: Factory = Factory(GhostPowerUp)
 
@@ -62,6 +62,21 @@ class World:
         return any(log_pair.update_scored(rect) for log_pair in self.logs)
 
     def update(self, dt: float) -> None:
+        if self.generate_logs:
+            self.logs_spawn_timer += dt
+
+            if self.logs_spawn_timer >= settings.TIME_TO_SPAWN_LOGS:
+                self.logs_spawn_timer = 0.0
+                y = max(
+                    settings.MIN_LOG_Y,
+                    min(
+                        self.last_log_y + random.randint(-20, 20),
+                        settings.MAX_LOG_Y,
+                    ),
+                )
+                self.last_log_y = y
+                self.logs.append(self.log_pair_factory.create(settings.VIRTUAL_WIDTH, y))
+
         self.background_x += -settings.BACK_SCROLL_SPEED * dt
 
         if self.background_x <= -settings.BACKGROUND_LOOPING_POINT:
