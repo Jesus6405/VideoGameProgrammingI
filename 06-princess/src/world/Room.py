@@ -75,7 +75,9 @@ def _doorway_opening_for(
     """
     for direction, zone in _DOORWAY_ZONES.items():
         if zone.colliderect(rect):
-            return doorways_by_direction[direction].get_collision_rect()
+            doorway = doorways_by_direction.get(direction)
+            if doorway is not None:
+                return doorway.get_collision_rect()
 
     return None
 

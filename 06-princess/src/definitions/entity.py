@@ -201,4 +201,20 @@ ENTITY_DEFS: Dict[str, Dict[str, Any]] = {
             "idle-up": {"frames": [95]},
         },
     },
+    "boss": {
+        "walk_speed": 0,
+        "animations": {
+            "idle": {
+                "frames": [1, 2, 3, 4, 5, 6, 7, 8],
+                "interval": 0.15,
+                "texture": "boss",
+            },
+            "attack": {
+                "frames": [9, 10, 11, 12, 13, 14, 15, 16],
+                "interval": 0.12,
+                "loops": 1,
+                "texture": "boss",
+            },
+        },
+    },
 }

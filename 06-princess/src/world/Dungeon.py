@@ -17,6 +17,7 @@ from gale.timer import Timer
 
 import settings
 from src.world.Room import Room
+from src.world.BossRoom import BossRoom
 import random
 
 
@@ -65,7 +66,22 @@ class Dungeon:
             self.chest_spawned = False
 
         self.shifting = True
-        self.next_room = self._make_room()
+
+        # Determine the entry door direction in the new room
+        if shift_x < 0:
+            entry_direction = "right"
+        elif shift_x > 0:
+            entry_direction = "left"
+        elif shift_y < 0:
+            entry_direction = "bottom"
+        else:
+            entry_direction = "top"
+
+        # If the player has the bow, there is a probability to enter the BossRoom
+        if (self.player.has_bow and not isinstance(self.current_room, BossRoom) and random.random() < settings.BOSS_ROOM_PROBABILITY):
+            self.next_room = BossRoom(self.player, self.on_game_over, entry_direction)
+        else:
+            self.next_room = self._make_room()
 
         # Start all doors in next room as open until we get in.
         for doorway in self.next_room.doorways:

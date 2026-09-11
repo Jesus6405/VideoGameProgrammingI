@@ -95,6 +95,8 @@ TEXTURES = {
     ),
     "arrow": pygame.image.load(BASE_DIR / "assets" / "graphics" / "arrow.png"),
     "chest": pygame.image.load(BASE_DIR / "assets" / "graphics" / "chest.png"),
+    "boss": pygame.image.load(BASE_DIR / "assets" / "graphics" / "boss.png"),
+    "fireball": pygame.image.load(BASE_DIR / "assets" / "graphics" / "fireball.png"),
 }
 
 # Used by Room's gale.tilemap.TileMap: TILE_* ids above are 1-based,
@@ -115,6 +117,8 @@ FRAMES = {
     "character-bow": frames.generate_frames(TEXTURES["character-bow"], 32, 32),
     "arrow": frames.generate_frames(TEXTURES["arrow"], 16, 8),
     "chest": frames.generate_frames(TEXTURES["chest"], 19, 21),
+    "boss": frames.generate_frames(TEXTURES["boss"], 64, 68),
+    "fireball": frames.generate_frames(TEXTURES["fireball"], 32, 32)
 }
 
 
@@ -155,3 +159,9 @@ MUSIC = {
 COLOR_TITLE_SHADOW = (34, 34, 34)
 COLOR_TITLE = (175, 53, 42)
 COLOR_WHITE = (255, 255, 255)
+
+BOSS_HITPOINTS = 10
+BOSS_FIREBALL_SPEED = 60
+BOSS_FIREBALL_INTERVAL = 2.0
+BOSS_VULNERABILITY_DURATION = 3.0
+BOSS_ROOM_PROBABILITY = 0.3
