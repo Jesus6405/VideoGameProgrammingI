@@ -22,6 +22,7 @@ from gale.physics.world import World
 
 import settings
 from src.definitions.entity import BIRD, density_for_circle
+import pymunk
 
 
 class Bird:
@@ -43,6 +44,11 @@ class Bird:
         self.body.set_damping(BIRD["linear_damping"], BIRD["angular_damping"])
         self.body.user_data = self
 
+        # Prevent birds from colliding with each other while colliding normally
+        # with scene objects (which have default group 0).
+        for pm_shape in self.body._pm_body.shapes:
+            pm_shape.filter = pymunk.ShapeFilter(group=1)
+
         self.initial_position = pygame.Vector2(x, y)
         self.image = settings.TEXTURES[BIRD["sprite"]]
 
@@ -59,6 +65,9 @@ class Bird:
         self.body.angle = 0.0
         self.body.velocity = (0, 0)
         self.body.angular_velocity = 0.0
+
+    def destroy(self, world: World) -> None:
+        world.destroy_body(self.body)
 
     def render(self, surface: pygame.Surface, camera) -> None:
         diameter = max(1, round(self.radius * 2 * camera.zoom))

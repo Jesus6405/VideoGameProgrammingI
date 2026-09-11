@@ -31,6 +31,7 @@ input_handler.InputHandler.set_mouse_click_action(
     input_handler.MOUSE_BUTTON_1, "touch"
 )
 input_handler.InputHandler.set_mouse_motion_action(None, "touch_motion")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "split")
 
 TITLE = "Throw a Bird"
 
