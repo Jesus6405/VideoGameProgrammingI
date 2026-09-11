@@ -19,7 +19,7 @@ class HardStrategy(DifficultyStrategy):
                 max_vertical_delta = min(80.0, self.next_spawn_time * 50.0)
                 height_offset = random.uniform(-max_vertical_delta, max_vertical_delta)
 
-                y = max (-settings.LOG_HEIGHT + 10, min(world.last_log_y + height_offset, settings.VIRTUAL_HEIGHT - 125 - settings.LOG_HEIGHT))
+                y = max (settings.MIN_LOG_Y, min(world.last_log_y + height_offset, settings.MAX_LOG_Y))
 
                 world.last_log_y = y
 
