@@ -19,6 +19,11 @@ from gale import input_handler
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, "quit")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "confirm")
 input_handler.InputHandler.set_mouse_click_action(input_handler.MOUSE_BUTTON_1, "jump")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "pause")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_a, "move_left")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_d, "move_right")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_UP, "menu_up")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "menu_down")
 
 TITLE = "Flappy Bird"
 
@@ -56,6 +61,7 @@ GRAVITY = 980
 JUMP_TAKEOFF_SPEED = GRAVITY / 6
 
 TIME_TO_SPAWN_LOGS = 1.5
+HARD_MODE_HORIZONTAL_SPEED = 110
 
 MEDIUM_TEXT_SIZE = 18
 HUGE_TEXT_SIZE = 56
@@ -68,6 +74,7 @@ TEXTURES = {
     "background": pygame.image.load(BASE_DIR / "assets" / "graphics" / "background.png"),
     "ground": pygame.image.load(BASE_DIR / "assets" / "graphics" / "ground.png"),
     "log": pygame.image.load(BASE_DIR / "assets" / "graphics" / "log.png"),
+    "ghost": pygame.image.load(BASE_DIR / "assets" / "graphics" / "ghost.png"),
 }
 # The top log of every pair is the same image, flipped upside down.
 TEXTURES["log_inverted"] = pygame.transform.flip(TEXTURES["log"], False, True)
@@ -77,6 +84,8 @@ SOUNDS = {
     "explosion": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "explosion.wav"),
     "hurt": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "hurt.wav"),
     "score": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "score.wav"),
+    "log_crash": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "log_crash.wav"),
+    "ghost_music": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "gaming_rock.mp3"),
 }
 
 pygame.mixer.music.load(BASE_DIR / "assets" / "sounds" / "marios_way.ogg")
@@ -91,3 +100,4 @@ FONTS = {
 
 COLOR_BACKGROUND = (0, 0, 0)
 COLOR_WHITE = (255, 255, 255)
+COLOR_RED = (255, 0, 0)
