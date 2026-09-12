@@ -19,6 +19,7 @@ import settings
 
 class StartState(BaseState):
     def enter(self) -> None:
+        settings.SOUNDS["gaming-rock"].stop()
         pygame.mixer.music.load(settings.MUSIC["start"])
         pygame.mixer.music.play(loops=-1)
 

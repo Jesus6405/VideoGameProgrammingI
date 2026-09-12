@@ -26,6 +26,7 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "move_dow
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "sword")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "enter")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_KP_ENTER, "enter")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_f, "fire")
 
 TITLE = "The Legend of the Princess"
 
@@ -89,6 +90,13 @@ TEXTURES = {
     "character-pot-walk": pygame.image.load(
         BASE_DIR / "assets" / "graphics" / "character_pot_walk.png"
     ),
+    "character-bow": pygame.image.load(
+        BASE_DIR / "assets" / "graphics" / "character_bow.png"
+    ),
+    "arrow": pygame.image.load(BASE_DIR / "assets" / "graphics" / "arrow.png"),
+    "chest": pygame.image.load(BASE_DIR / "assets" / "graphics" / "chest.png"),
+    "boss": pygame.image.load(BASE_DIR / "assets" / "graphics" / "boss.png"),
+    "fireball": pygame.image.load(BASE_DIR / "assets" / "graphics" / "fireball.png"),
 }
 
 # Used by Room's gale.tilemap.TileMap: TILE_* ids above are 1-based,
@@ -106,6 +114,11 @@ FRAMES = {
     "entities": frames.generate_frames(TEXTURES["entities"], 16, 16),
     "character-pot-lift": frames.generate_frames(TEXTURES["character-pot-lift"], 16, 32),
     "character-pot-walk": frames.generate_frames(TEXTURES["character-pot-walk"], 16, 32),
+    "character-bow": frames.generate_frames(TEXTURES["character-bow"], 32, 32),
+    "arrow": frames.generate_frames(TEXTURES["arrow"], 16, 8),
+    "chest": frames.generate_frames(TEXTURES["chest"], 19, 21),
+    "boss": frames.generate_frames(TEXTURES["boss"], 64, 68),
+    "fireball": frames.generate_frames(TEXTURES["fireball"], 32, 32)
 }
 
 
@@ -135,6 +148,7 @@ SOUNDS = {
         BASE_DIR / "assets" / "sounds" / "heart_taken.wav"
     ),
     "pot-wall": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "pot_wall.wav"),
+    "gaming-rock": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "gaming_rock.mp3"),
 }
 
 MUSIC = {
@@ -146,3 +160,9 @@ MUSIC = {
 COLOR_TITLE_SHADOW = (34, 34, 34)
 COLOR_TITLE = (175, 53, 42)
 COLOR_WHITE = (255, 255, 255)
+
+BOSS_HITPOINTS = 10
+BOSS_FIREBALL_SPEED = 60
+BOSS_FIREBALL_INTERVAL = 2.0
+BOSS_VULNERABILITY_DURATION = 3.0
+BOSS_ROOM_PROBABILITY = 0.3

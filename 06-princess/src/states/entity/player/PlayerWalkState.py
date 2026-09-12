@@ -37,6 +37,12 @@ class PlayerWalkState(BaseEntityState):
     def update(self, dt: float) -> None:
         player = self.entity
 
+        if player.fire_requested:
+            player.fire_requested = False
+            if player.has_bow:
+                player.change_state("bow")
+                return
+
         if player.sword_requested:
             player.sword_requested = False
             player.change_state("swing-sword")
