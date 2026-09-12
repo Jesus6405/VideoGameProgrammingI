@@ -52,6 +52,7 @@ class PlayerSwingSwordState(BaseEntityState):
             x = self.entity.x
             y = self.entity.y + self.entity.height
 
+        self.damage_done = False 
         self.sword_hitbox = pygame.Rect(round(x), round(y), width, height)
         self.entity.change_animation(f"sword-{direction}")
 
@@ -71,9 +72,10 @@ class PlayerSwingSwordState(BaseEntityState):
             return
 
         for entity in self.dungeon.current_room.entities:
-            if entity.collides(self.sword_hitbox):
+            if entity.collides(self.sword_hitbox) and not self.damage_done:
                 entity.damage(1)
                 settings.SOUNDS["hit-enemy"].play()
+                self.damage_done = True 
 
         if self.entity.current_animation.times_played > 0:
             self.entity.current_animation.times_played = 0

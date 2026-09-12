@@ -47,6 +47,9 @@ class Dungeon:
 
 
     def _make_room(self) -> Room:
+        settings.SOUNDS["gaming-rock"].stop()
+        pygame.mixer.music.unpause()
+        
         spawn_chest = not self.chest_spawned
         if spawn_chest:
             if random.random() < 0.2:
@@ -80,6 +83,8 @@ class Dungeon:
         # If the player has the bow, there is a probability to enter the BossRoom
         if (self.player.has_bow and not isinstance(self.current_room, BossRoom) and random.random() < settings.BOSS_ROOM_PROBABILITY):
             self.next_room = BossRoom(self.player, self.on_game_over, entry_direction)
+            pygame.mixer.music.pause()
+            settings.SOUNDS["gaming-rock"].play(loops=-1)
         else:
             self.next_room = self._make_room()
 

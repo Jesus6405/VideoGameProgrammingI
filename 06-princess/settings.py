@@ -148,6 +148,7 @@ SOUNDS = {
         BASE_DIR / "assets" / "sounds" / "heart_taken.wav"
     ),
     "pot-wall": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "pot_wall.wav"),
+    "gaming-rock": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "gaming_rock.mp3"),
 }
 
 MUSIC = {
