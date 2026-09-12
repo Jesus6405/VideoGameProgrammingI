@@ -17,6 +17,7 @@ import pygame
 from gale import input_handler
 
 from src.frames_utility import generate_tile_frames
+from gale.frames import generate_frames
 
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_ESCAPE, "quit")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_KP_ENTER, "enter")
@@ -53,9 +54,14 @@ TEXTURES = {
         BASE_DIR / "assets" / "graphics" / "background.png"
     ),
     "tiles": pygame.image.load(BASE_DIR / "assets" / "graphics" / "match3.png"),
+    "bomb": pygame.image.load(BASE_DIR / "assets" / "graphics" / "bomb.png"),
+    "star": pygame.image.load(BASE_DIR / "assets" / "graphics" / "star.png")
 }
 
-FRAMES = {"tiles": generate_tile_frames(TEXTURES["tiles"])}
+FRAMES = {"tiles": generate_tile_frames(TEXTURES["tiles"]),
+        "bomb": generate_frames(TEXTURES["bomb"], 22, 22),
+        "star": generate_frames(TEXTURES["star"], 22, 22),
+}
 
 SOUNDS = {
     "clock": pygame.mixer.Sound(BASE_DIR / "assets" / "sounds" / "clock.wav"),
