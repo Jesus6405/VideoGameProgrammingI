@@ -51,7 +51,7 @@ class PlayingState(BaseState):
             settings.SOUNDS["ghost_music"].stop()
             settings.TEXTURES["bird"].set_alpha(255)
             pygame.mixer.music.unpause()
-            self.state_machine.change("count_down", gamemode = self.gamemode)
+            self.state_machine.change("title")
             return
 
         if self.world.update_scored(self.bird.get_rect()):

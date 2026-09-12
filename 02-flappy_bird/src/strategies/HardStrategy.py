@@ -26,7 +26,7 @@ class HardStrategy(DifficultyStrategy):
                 if random.random() < 0.3:
                     world.logs.append(world.log_pair_factory.create(settings.VIRTUAL_WIDTH, y, {"closes" : True}))
                 else:
-                    world.logs.append(world.log_pair_factory.create(settings.VIRTUAL_WIDTH, y))
+                    world.logs.append(world.log_pair_factory.create(settings.VIRTUAL_WIDTH, y, {"gap" : random.randint(settings.LOGS_GAP - 20, settings.LOGS_GAP)}))
                 
                 self.next_spawn_time = random.uniform(1.2, 2.2)
 

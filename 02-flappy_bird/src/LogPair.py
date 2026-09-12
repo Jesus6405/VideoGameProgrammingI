@@ -16,12 +16,13 @@ import settings
 
 
 class LogPair:
-    def __init__(self, x: float, y: float, closes = False) -> None:
+    def __init__(self, x: float, y: float, closes = False, gap = settings.LOGS_GAP) -> None:
         self.x: float = x
         self.y: float = y
         self.scored: bool = False
         self.closes: bool = closes
-        self.gap: float = settings.LOGS_GAP
+        self.gap: float = gap
+        self.initial_gap: float = gap
         self.close_speed = 30.0
 
     def get_top_rect(self) -> pygame.Rect:
@@ -49,7 +50,7 @@ class LogPair:
                 self.close_speed = -30.0
                 settings.SOUNDS["log_crash"].play()
 
-            if self.gap > settings.LOGS_GAP:
+            if self.gap > self.initial_gap:
                 self.close_speed = 30.0
 
     def is_out_of_game(self) -> bool:
