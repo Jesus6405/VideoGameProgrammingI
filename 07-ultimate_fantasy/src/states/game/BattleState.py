@@ -21,6 +21,7 @@ import pygame
 
 from gale.state import BaseState, StateMachine
 from gale.tilemap import TileMap
+from gale.timer import Timer
 
 import settings
 from src.definitions.entity import (
@@ -101,6 +102,7 @@ class BattleState(BaseState):
                     "baseAttack": enemy_def["baseAttack"],
                     "baseDefense": enemy_def["baseDefense"],
                     "baseMagic": enemy_def["baseMagic"],
+                    "rest_time": enemy_def.get("rest_time", 2.2),
                     "actions": enemy_def["actions"],
                     "direction": "left",
                     "map_x": position["x"],
@@ -146,6 +148,16 @@ class BattleState(BaseState):
                 color=pygame.Color(32, 32, 189),
                 theme=BAR_THEME,
             )
+            character.rest_bar = ProgressBar(
+                character.x - (width - character.width) / 2,
+                character.y - 14,
+                width,
+                3,
+                value=character.rest_timer,
+                max_value=character.rest_time,
+                color=pygame.Color(230, 200, 30),
+                theme=BAR_THEME,
+            )
 
         for enemy in self.enemies:
             width = math.floor(enemy.width * 1.5)
@@ -159,15 +171,45 @@ class BattleState(BaseState):
                 color=pygame.Color(189, 32, 32),
                 theme=BAR_THEME,
             )
+            enemy.rest_bar = ProgressBar(
+                enemy.x - (width - enemy.width) / 2,
+                enemy.y - 6,
+                width,
+                3,
+                value=enemy.rest_timer,
+                max_value=enemy.rest_time,
+                color=pygame.Color(230, 200, 30),
+                theme=BAR_THEME,
+            )
 
     def update(self, dt: float) -> None:
         if not self.battle_started:
             self.battle_started = True
             self._trigger_starting_dialogue()
+            return 
 
         for enemy in self.enemies:
             if not enemy.dead:
                 enemy.update(dt)
+
+        for character in self.party.characters.values():
+            if not character.dead:
+                character.update_rest(dt)
+                if hasattr(character, "rest_bar"):
+                    character.rest_bar.value = character.rest_timer
+
+        for enemy in self.enemies:
+            if not enemy.dead:
+                enemy.update_rest(dt)
+                if hasattr(enemy, "rest_bar"):
+                    enemy.rest_bar.value = enemy.rest_timer
+
+    def get_ready_entities(self) -> list:
+        living_chars = [c for c in self.party.characters.values() if not c.dead and c.is_rest_ready()]
+        living_enemies = [e for e in self.enemies if not e.dead and e.is_rest_ready()]
+        all_ready = living_chars + living_enemies
+        all_ready.sort(key=lambda entity: (entity.rest_timer - entity.rest_time), reverse=True)
+        return all_ready
 
     def _trigger_starting_dialogue(self) -> None:
         from src.states.game.BattleMenuState import BattleMenuState
@@ -220,11 +262,15 @@ class BattleState(BaseState):
             if not enemy.dead:
                 enemy.render(surface)
                 enemy.energy_bar.render(surface)
+                if hasattr(enemy, "rest_bar"):
+                    enemy.rest_bar.render(surface)
 
         for character in self.party.characters.values():
             if not character.dead:
                 character.render(surface)
                 character.energy_bar.render(surface)
                 character.exp_bar.render(surface)
+                if hasattr(character, "rest_bar"):
+                    character.rest_bar.render(surface)
 
         self.bottom_panel.render(surface)
