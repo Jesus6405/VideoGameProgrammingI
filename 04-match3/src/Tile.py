@@ -14,18 +14,20 @@ import settings
 
 
 class Tile:
-    def __init__(self, i: int, j: int, color: int, variety: int) -> None:
+    def __init__(self, i: int, j: int, color: int, variety: int, power_up = None) -> None:
         self.i = i
         self.j = j
         self.x = self.j * settings.TILE_SIZE
         self.y = self.i * settings.TILE_SIZE
         self.color = color
         self.variety = variety
+        self.power_up = power_up
         self.alpha_surface = pygame.Surface(
             (settings.TILE_SIZE, settings.TILE_SIZE), pygame.SRCALPHA
         )
 
     def render(self, surface: pygame.Surface, offset_x: int, offset_y: int) -> None:
+        self.alpha_surface.fill((0, 0, 0, 0))
         self.alpha_surface.blit(
             settings.TEXTURES["tiles"],
             (0, 0),
@@ -43,3 +45,17 @@ class Tile:
             (self.x + offset_x, self.y + offset_y),
             settings.FRAMES["tiles"][self.color][self.variety],
         )
+
+        if self.power_up is not None: 
+            if self.power_up == "cross":
+                surface.blit(
+                    settings.TEXTURES["star"],
+                    (self.x + 5 + offset_x, self.y + 5 + offset_y),
+                    settings.FRAMES["star"][0],
+                )
+            elif self.power_up == "color_bomb":
+                surface.blit(
+                    settings.TEXTURES["bomb"],
+                    (self.x + 5 + offset_x, self.y + 5 + offset_y),
+                    settings.FRAMES["bomb"][0],
+                )

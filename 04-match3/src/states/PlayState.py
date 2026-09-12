@@ -231,7 +231,7 @@ class PlayState(BaseState):
                     for match in matches:
                         self.score += len(match) * 50
 
-                    self.board.remove_matches()
+                    self.board.remove_matches(moved_tiles =[tile1, tile2])
 
                     falling_tiles = self.board.get_falling_tiles()
 
@@ -257,6 +257,30 @@ class PlayState(BaseState):
             original_y = start_i * settings.TILE_SIZE
             tile1.x = original_x
             tile1.y = original_y
+
+            if tile1.power_up is not None:
+                self.active = False
+                exploded_tiles = self.board.get_power_up_explosion(tile1)
+                if not exploded_tiles:
+                    exploded_tiles = {tile1}
+
+                settings.SOUNDS["match"].stop()
+                settings.SOUNDS["match"].play()
+
+                self.score += len(exploded_tiles) * 50
+
+                for t in exploded_tiles:
+                    self.board.tiles[t.i][t.j] = None
+
+                falling_tiles = self.board.get_falling_tiles()
+
+                Timer.tween(
+                    0.25,
+                    falling_tiles,
+                    on_finish=lambda: self._calculate_matches(
+                        [item[0] for item in falling_tiles]
+                    ),
+                )
 
     def _calculate_matches(self, tiles: List) -> None:
         matches = self.board.calculate_matches_for(tiles)

@@ -152,12 +152,62 @@ class Board:
         delattr(self, "in_match")
         delattr(self, "in_stack")
 
+        # If any matched tile is a power-up, expand match with its explosion effect
+        if len(self.matches) > 0:
+            for match in self.matches:
+                extra_tiles = set()
+                for tile in match:
+                    if tile.power_up is not None:
+                        extra_tiles.update(self.get_power_up_explosion(tile))
+                for extra in extra_tiles:
+                    if extra not in match:
+                        match.append(extra)
+
         return self.matches if len(self.matches) > 0 else None
 
-    def remove_matches(self) -> None:
+    def remove_matches(self, moved_tiles: Optional[List[Tile]] = None) -> None:
         for match in self.matches:
-            for tile in match:
-                self.tiles[tile.i][tile.j] = None
+            if not match:
+                continue
+
+            match_color = match[0].color
+            same_color_count = sum(1 for t in match if t.color == match_color)
+
+            power_up_type = None
+            if same_color_count >= 5:
+                power_up_type = "color_bomb"
+            elif same_color_count == 4:
+                power_up_type = "cross"
+
+            spawn_i, spawn_j = match[0].i, match[0].j
+            if power_up_type is not None:
+                if moved_tiles:
+                    found_moved = False
+                    for moved_tile in moved_tiles:
+                        if any(t.i == moved_tile.i and t.j == moved_tile.j for t in match):
+                            spawn_i, spawn_j = moved_tile.i, moved_tile.j
+                            found_moved = True
+                            break
+                    if not found_moved:
+                        spawn_i, spawn_j = match[0].i, match[0].j
+                else:
+                    spawn_i, spawn_j = match[0].i, match[0].j
+
+                power_up_tile = Tile(
+                    spawn_i,
+                    spawn_j,
+                    match_color,
+                    random.randint(0, settings.NUM_VARIETIES - 1),
+                    power_up=power_up_type,
+                )
+
+                for tile in match:
+                    self.tiles[tile.i][tile.j] = None
+
+                self.tiles[spawn_i][spawn_j] = power_up_tile
+            else:
+                for tile in match:
+                    self.tiles[tile.i][tile.j] = None
 
         self.matches = []
 
@@ -259,6 +309,12 @@ class Board:
     def has_valid_moves(self) -> bool:
         for i in range(settings.BOARD_HEIGHT):
             for j in range(settings.BOARD_WIDTH):
+                tile = self.tiles[i][j]
+                if tile is not None and tile.power_up is not None:
+                    return True
+
+        for i in range(settings.BOARD_HEIGHT):
+            for j in range(settings.BOARD_WIDTH):
                 if j + 1 < settings.BOARD_WIDTH:
                     if self._swap_creates_match(i, j, i, j + 1):
                         return True
@@ -269,3 +325,34 @@ class Board:
 
     def recreate_board(self) -> None:
         self._initialize_tiles()
+
+    def get_power_up_explosion(self, tile: Tile, processed = None):
+        if processed is None:
+            processed = set()
+        if tile in processed or tile.power_up is None:
+            return set()
+
+        processed.add(tile)
+        exploded: Set[Tile] = {tile}
+
+        if tile.power_up == "cross":
+            # 4-Tile Power-up: explodes horizontal and vertical neighbor tiles
+            for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                ni, nj = tile.i + di, tile.j + dj
+                if 0 <= ni < settings.BOARD_HEIGHT and 0 <= nj < settings.BOARD_WIDTH:
+                    neighbor = self.tiles[ni][nj]
+                    if neighbor is not None:
+                        exploded.add(neighbor)
+                        if neighbor.power_up is not None and neighbor not in processed:
+                            exploded.update(self.get_power_up_explosion(neighbor, processed))
+
+        elif tile.power_up == "color_bomb":
+            # 5+ Tile Power-up: explodes all tiles of the same color on the entire board
+            for row in self.tiles:
+                for other in row:
+                    if other is not None and other.color == tile.color:
+                        exploded.add(other)
+                        if other.power_up is not None and other not in processed:
+                            exploded.update(self.get_power_up_explosion(other, processed))
+
+        return exploded
