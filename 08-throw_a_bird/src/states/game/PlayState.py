@@ -87,7 +87,7 @@ CAMERA_PAN_MARGIN = 300
 SPLIT_ANGLE = 15.0
 SPLIT_OFFSET_DISTANCE = 15.0
 
-HUD_TEXT = "Drag the bird to aim and release to fling. Drag elsewhere to pan."
+HUD_TEXT = "Drag the bird to aim and release to fling. SPACE in flight to split. Drag elsewhere to pan."
 
 
 
@@ -145,7 +145,14 @@ class PlayState(BaseState):
             return
 
         if self.flinging:
-            self.camera_target.update(self.bird.position)
+            moving_birds = [b for b in self.birds if b.body.velocity.length() >= IDLE_LINEAR_SPEED_THRESHOLD]
+            if moving_birds:
+                avg_pos = sum((b.position for b in moving_birds), pygame.Vector2()) / len(moving_birds)
+                self.camera_target.update(avg_pos)
+            else:
+                avg_pos = sum((b.position for b in self.birds), pygame.Vector2()) / len(self.birds)
+                self.camera_target.update(avg_pos)
+
             self._update_idle()
         elif self.aiming:
             self._hold_bird_while_aiming()
