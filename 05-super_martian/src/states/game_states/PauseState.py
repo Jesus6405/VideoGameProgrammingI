@@ -50,6 +50,17 @@ class PauseState(BaseState):
 
         render_text(
             surface,
+            "PAUSED",
+            settings.FONTS["medium"],
+            settings.VIRTUAL_WIDTH / 2,
+            settings.VIRTUAL_HEIGHT / 2 - 20,
+            (255, 255, 255),
+            shadowed = True,
+            center = True
+        )
+
+        render_text(
+            surface,
             f"Time: {self.clock.time}",
             settings.FONTS["small"],
             settings.VIRTUAL_WIDTH - 60,

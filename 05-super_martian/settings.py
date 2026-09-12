@@ -99,8 +99,8 @@ SOUNDS["pickup_coin"].set_volume(0.5)
 
 # Score targets required for each level to spawn the special key block
 TARGET_SCORES = {
-    1: 50,
-    2: 200,
+    1: 150,
+    2: 300,
 }
 
 # Positions where the special key block spawns in each level (x, y in pixels)
