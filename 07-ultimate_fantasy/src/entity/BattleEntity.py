@@ -38,6 +38,23 @@ class BattleEntity(Entity):
 
         self.current_hp: float = self.hp
 
+        self.rest_time: float = float(definition.get("rest_time", 2.5))
+        self.rest_timer: float = 0.0
+
+    def update_rest(self, dt: float) -> bool:
+        if self.dead:
+            return False
+        self.rest_timer = min(self.rest_time, self.rest_timer + dt)
+        return self.is_rest_ready()
+
+    def is_rest_ready(self) -> bool:
+        return not self.dead and self.rest_timer >= self.rest_time
+
+    def reset_rest(self, custom_time = None):
+        self.rest_timer = 0.0
+        if custom_time is not None:
+            self.rest_time = custom_time
+
     def damage(self, amount: float) -> None:
         self.current_hp -= amount
 

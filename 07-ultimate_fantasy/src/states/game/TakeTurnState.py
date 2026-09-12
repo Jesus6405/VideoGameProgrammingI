@@ -28,25 +28,65 @@ import settings
 class TakeTurnState(BaseState):
     def enter(self, battle_state: Any) -> None:
         self.battle_state = battle_state
+        self.turn_queue: list = []
+        self.busy: bool = False
         self.enemy_attacks_in_a_row = 0
-        self._take_party_turn(0)
+
+        # Reset rest timers on combat start
+        for character in self.battle_state.party.characters.values():
+            character.reset_rest()
+            if hasattr(character, "rest_bar"):
+                character.rest_bar.value = 0
+
+        for enemy in self.battle_state.enemies:
+            enemy.reset_rest()
+            if hasattr(enemy, "rest_bar"):
+                enemy.rest_bar.value = 0
+
+    def update(self, dt: float) -> None:
+        if self.busy:
+            return
+
+        if all(enemy.dead for enemy in self.battle_state.enemies):
+            self.busy = True
+            self._victory()
+            return
+
+        if all(character.dead for character in self.battle_state.party.characters.values()):
+            self.busy = True
+            self._faint()
+            return
+
+        # Update entity timers & animations in battle_state
+        self.battle_state.update(dt)
+
+        # Enqueue entities that finished rest and are not in queue yet
+        ready_entities = self.battle_state.get_ready_entities()
+        for entity in ready_entities:
+            if entity not in self.turn_queue:
+                self.turn_queue.append(entity)
+
+        # Process next ready entity from queue
+        if self.turn_queue and not self.busy:
+            next_entity = self.turn_queue.pop(0)
+            if not next_entity.dead:
+                self._take_turn(next_entity)
+
+    def _take_turn(self, entity: Any) -> None:
+        self.busy = True
+        if entity in self.battle_state.party.characters.values():
+            self._take_party_turn(entity)
+        else:
+            self._take_enemy_turn(entity)
 
     def _party_keys(self):
         return sorted(self.battle_state.party.characters.keys())
 
     # -- party turns ---------------------------------------------------
 
-    def _take_party_turn(self, index: int) -> None:
-        keys = self._party_keys()
-
-        if index >= len(keys):
-            self._take_enemy_turn(0)
-            return
-
-        character = self.battle_state.party.characters[keys[index]]
-
+    def _take_party_turn(self, character: int) -> None:
         if character.dead:
-            self._take_party_turn(index + 1)
+            self.busy = False
             return
 
         from src.states.game.BattleMessageState import BattleMessageState
@@ -55,17 +95,21 @@ class TakeTurnState(BaseState):
             BattleMessageState(self.state_machine),
             battle_state=self.battle_state,
             message=f"Turn for {character.name}! Select an action.",
-            on_close=lambda: self._prompt_action(character, index),
+            on_close=lambda: self._prompt_action(character),
         )
 
-    def _prompt_action(self, character: Any, index: int) -> None:
+    def _prompt_action(self, character: Any) -> None:
         from src.states.game.SelectActionState import SelectActionState
 
         def on_action_selected() -> None:
+            character.reset_rest()
+            if hasattr(character, "rest_bar"):
+                character.rest_bar.value = 0
+            self.busy = False
+
             if all(enemy.dead for enemy in self.battle_state.enemies):
+                self.busy = False
                 self._victory()
-            else:
-                self._take_party_turn(index + 1)
 
         self.state_machine.push(
             SelectActionState(self.state_machine),
@@ -76,17 +120,9 @@ class TakeTurnState(BaseState):
 
     # -- enemy turns ----------------------------------------------------
 
-    def _take_enemy_turn(self, index: int) -> None:
-        enemies = self.battle_state.enemies
-
-        if index >= len(enemies):
-            self._take_party_turn(0)
-            return
-
-        enemy = enemies[index]
-
+    def _take_enemy_turn(self, enemy) -> None:
         if enemy.dead:
-            self._take_enemy_turn(index + 1)
+            self.busy = False
             return
 
         self.enemy_attacks_in_a_row += 1
@@ -120,6 +156,7 @@ class TakeTurnState(BaseState):
             )
 
         if all(character.dead for character in self.battle_state.party.characters.values()):
+            self.busy = True
             self._faint()
             return
 
@@ -131,10 +168,21 @@ class TakeTurnState(BaseState):
                 and enemy.klass == "boss"
                 and random.randint(1, 3) == 1
             ):
-                self._take_enemy_turn(index)
+                enemy.rest_timer = enemy.rest_time
+                if hasattr(enemy, "rest_bar"):
+                    enemy.rest_bar.value = enemy.rest_time
+                self.turn_queue.insert(0, enemy)
             else:
                 self.enemy_attacks_in_a_row = 0
-                self._take_enemy_turn(index + 1)
+                enemy.reset_rest()
+                if hasattr(enemy, "rest_bar"):
+                    enemy.rest_bar.value = 0
+
+            self.busy = False
+
+            if all(character.dead for character in self.battle_state.party.characters.values()):
+                self.busy = True
+                self._faint()
 
         self.state_machine.push(
             BattleMessageState(self.state_machine),
