@@ -336,16 +336,21 @@ class Board:
         exploded: Set[Tile] = {tile}
 
         if tile.power_up == "cross":
-            # 4-Tile Power-up: explodes horizontal and vertical neighbor tiles
-            for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-                ni, nj = tile.i + di, tile.j + dj
-                if 0 <= ni < settings.BOARD_HEIGHT and 0 <= nj < settings.BOARD_WIDTH:
-                    neighbor = self.tiles[ni][nj]
-                    if neighbor is not None:
-                        exploded.add(neighbor)
-                        if neighbor.power_up is not None and neighbor not in processed:
-                            exploded.update(self.get_power_up_explosion(neighbor, processed))
-
+            targets = set()
+            
+            for ni in range(settings.BOARD_HEIGHT):
+                targets.add((ni, tile.j))
+            for nj in range(settings.BOARD_WIDTH):
+                targets.add((tile.i, nj))
+        
+            for ni, nj in targets:
+                neighbor = self.tiles[ni][nj]
+                if neighbor is not None:
+                    exploded.add(neighbor)
+                    
+                    if neighbor.power_up is not None and neighbor not in processed:
+                        exploded.update(self.get_power_up_explosion(neighbor, processed))
+                        
         elif tile.power_up == "color_bomb":
             # 5+ Tile Power-up: explodes all tiles of the same color on the entire board
             for row in self.tiles:
